@@ -1,6 +1,7 @@
 const express = require("express");
 const Event = require("../models/Event");
 const auth = require("../middleware/auth");
+const { notifyNewEvent, notifyEventStatusChange } = require("../helpers/notifications");
 const router = express.Router();
 
 // GET /api/events
