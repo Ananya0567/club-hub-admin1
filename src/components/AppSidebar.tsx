@@ -5,6 +5,8 @@ import {
   FileText,
   Settings,
   GraduationCap,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -22,6 +24,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
@@ -38,6 +41,9 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
+
+  const toggleTheme = () => setTheme(resolvedTheme === "dark" ? "light" : "dark");
 
   return (
     <Sidebar collapsible="icon">
@@ -80,7 +86,17 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-3">
+      <SidebarFooter className="border-t border-sidebar-border p-3 space-y-2">
+        <Button
+          variant="ghost"
+          size={collapsed ? "icon" : "sm"}
+          className={`text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 ${collapsed ? "h-8 w-8 mx-auto" : "w-full justify-start gap-2"}`}
+          onClick={toggleTheme}
+        >
+          {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {!collapsed && (resolvedTheme === "dark" ? "Light Mode" : "Dark Mode")}
+        </Button>
+
         {!collapsed && user && (
           <div className="flex items-center justify-between">
             <div className="overflow-hidden">
