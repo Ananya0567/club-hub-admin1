@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Plus, Pencil, Trash2, Search, CalendarIcon, X, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CalendarIcon, X, ChevronLeft, ChevronRight, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useEvents, useClubs } from "@/hooks/use-dashboard-api";
 import { useCreateEvent, useUpdateEvent, useDeleteEvent } from "@/hooks/use-mutations";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +17,9 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Event } from "@/types/api";
+
+type SortKey = "name" | "club" | "date" | "status" | "rating";
+type SortDir = "asc" | "desc";
 
 const statusVariant: Record<string, "default" | "secondary" | "destructive"> = {
   approved: "default",
@@ -46,13 +49,34 @@ const EventsTable = () => {
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
 
+  // Sorting
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
   // Pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+    setPage(1);
+  };
+
+  const SortIcon = ({ column }: { column: SortKey }) => {
+    if (sortKey !== column) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="h-3 w-3 ml-1" />
+      : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
   const filteredEvents = useMemo(() => {
     if (!events) return [];
-    return events.filter((e) => {
+    let result = events.filter((e) => {
       if (search && !e.name.toLowerCase().includes(search.toLowerCase()) && !e.club.toLowerCase().includes(search.toLowerCase())) return false;
       if (clubFilter !== "all" && e.club !== clubFilter) return false;
       if (statusFilter !== "all" && e.status !== statusFilter) return false;
@@ -60,7 +84,24 @@ const EventsTable = () => {
       if (dateTo && e.date > format(dateTo, "yyyy-MM-dd")) return false;
       return true;
     });
-  }, [events, search, clubFilter, statusFilter, dateFrom, dateTo]);
+    if (sortKey) {
+      result = [...result].sort((a, b) => {
+        let aVal = a[sortKey] ?? "";
+        let bVal = b[sortKey] ?? "";
+        if (sortKey === "rating") {
+          const aNum = parseFloat(String(aVal)) || 0;
+          const bNum = parseFloat(String(bVal)) || 0;
+          return sortDir === "asc" ? aNum - bNum : bNum - aNum;
+        }
+        aVal = String(aVal).toLowerCase();
+        bVal = String(bVal).toLowerCase();
+        if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return result;
+  }, [events, search, clubFilter, statusFilter, dateFrom, dateTo, sortKey, sortDir]);
 
   // Reset page when filters change
   const totalPages = Math.max(1, Math.ceil(filteredEvents.length / pageSize));
@@ -238,11 +279,21 @@ const EventsTable = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Event Name</TableHead>
-                <TableHead>Club</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Rating</TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("name")}>
+                  <span className="inline-flex items-center">Event Name <SortIcon column="name" /></span>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("club")}>
+                  <span className="inline-flex items-center">Club <SortIcon column="club" /></span>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("date")}>
+                  <span className="inline-flex items-center">Date <SortIcon column="date" /></span>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("status")}>
+                  <span className="inline-flex items-center">Status <SortIcon column="status" /></span>
+                </TableHead>
+                <TableHead className="text-right cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("rating")}>
+                  <span className="inline-flex items-center justify-end w-full">Rating <SortIcon column="rating" /></span>
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
