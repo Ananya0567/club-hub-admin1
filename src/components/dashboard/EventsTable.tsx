@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Plus, Pencil, Trash2, Search, CalendarIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CalendarIcon, X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { useEvents, useClubs } from "@/hooks/use-dashboard-api";
 import { useCreateEvent, useUpdateEvent, useDeleteEvent } from "@/hooks/use-mutations";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,6 +89,27 @@ const EventsTable = () => {
     setPage(1);
   };
 
+  const exportToCSV = () => {
+    if (!filteredEvents.length) return;
+    const headers = ["Event Name", "Club", "Date", "Status", "Rating"];
+    const rows = filteredEvents.map((e) => [
+      `"${e.name.replace(/"/g, '""')}"`,
+      `"${e.club.replace(/"/g, '""')}"`,
+      e.date,
+      e.status,
+      e.rating ?? "",
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `events-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported", description: `${filteredEvents.length} events exported to CSV` });
+  };
+
   const handleSubmit = (data: Partial<Event> & { id?: string }) => {
     const mutation = data.id ? updateEvent : createEvent;
     mutation.mutate(data as any, {
@@ -122,14 +143,25 @@ const EventsTable = () => {
       <Card className="shadow-card">
         <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-base font-semibold">Events Overview</CardTitle>
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1 h-7 text-xs"
-            onClick={() => { setEditingEvent(null); setFormOpen(true); }}
-          >
-            <Plus className="h-3 w-3" /> Add Event
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1 h-7 text-xs"
+              onClick={exportToCSV}
+              disabled={!filteredEvents.length}
+            >
+              <Download className="h-3 w-3" /> Export CSV
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1 h-7 text-xs"
+              onClick={() => { setEditingEvent(null); setFormOpen(true); }}
+            >
+              <Plus className="h-3 w-3" /> Add Event
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Filters */}
