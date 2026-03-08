@@ -279,11 +279,21 @@ const EventsTable = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Event Name</TableHead>
-                <TableHead>Club</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Rating</TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("name")}>
+                  <span className="inline-flex items-center">Event Name <SortIcon column="name" /></span>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("club")}>
+                  <span className="inline-flex items-center">Club <SortIcon column="club" /></span>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("date")}>
+                  <span className="inline-flex items-center">Date <SortIcon column="date" /></span>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("status")}>
+                  <span className="inline-flex items-center">Status <SortIcon column="status" /></span>
+                </TableHead>
+                <TableHead className="text-right cursor-pointer select-none hover:text-foreground" onClick={() => toggleSort("rating")}>
+                  <span className="inline-flex items-center justify-end w-full">Rating <SortIcon column="rating" /></span>
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
