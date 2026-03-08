@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Image, FileText, IndianRupee } from "lucide-react";
 
@@ -23,6 +24,9 @@ const MediaBudget = () => (
           </div>
           <span className="text-sm font-bold text-card-foreground">3</span>
         </div>
+        <Button variant="outline" size="sm" className="w-full mt-2 gap-2">
+          View All Media & Documents
+        </Button>
       </CardContent>
     </Card>
 
