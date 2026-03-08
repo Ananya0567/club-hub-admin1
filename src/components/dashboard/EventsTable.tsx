@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Plus, Pencil, Trash2, Search, CalendarIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CalendarIcon, X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { useEvents, useClubs } from "@/hooks/use-dashboard-api";
 import { useCreateEvent, useUpdateEvent, useDeleteEvent } from "@/hooks/use-mutations";
 import { Skeleton } from "@/components/ui/skeleton";
