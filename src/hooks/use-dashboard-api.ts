@@ -1,5 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  mockClubs,
+  mockEvents,
+  mockComplaints,
+  mockMetrics,
+  mockQuickStats,
+  mockBudget,
+  mockMonthlyEvents,
+  getMockCalendarEvents,
+} from "@/lib/mock-data";
 import type {
   Club,
   Event,
@@ -11,51 +22,42 @@ import type {
   CalendarDayEvents,
 } from "@/types/api";
 
-export const useMetrics = () =>
-  useQuery<DashboardMetrics>({
-    queryKey: ["metrics"],
-    queryFn: async () => (await api.get("/dashboard/metrics")).data,
+function useDemoAware<T>(queryKey: string[], apiFn: () => Promise<T>, mockData: T) {
+  const { isDemo } = useAuth();
+  return useQuery<T>({
+    queryKey,
+    queryFn: isDemo ? () => Promise.resolve(mockData) : apiFn,
   });
+}
+
+export const useMetrics = () =>
+  useDemoAware(["metrics"], async () => (await api.get("/dashboard/metrics")).data, mockMetrics);
 
 export const useClubs = () =>
-  useQuery<Club[]>({
-    queryKey: ["clubs"],
-    queryFn: async () => (await api.get("/clubs")).data,
-  });
+  useDemoAware(["clubs"], async () => (await api.get("/clubs")).data, mockClubs);
 
 export const useEvents = () =>
-  useQuery<Event[]>({
-    queryKey: ["events"],
-    queryFn: async () => (await api.get("/events")).data,
-  });
+  useDemoAware(["events"], async () => (await api.get("/events")).data, mockEvents);
 
 export const useQuickStats = () =>
-  useQuery<QuickStatsData>({
-    queryKey: ["quickStats"],
-    queryFn: async () => (await api.get("/dashboard/quick-stats")).data,
-  });
+  useDemoAware(["quickStats"], async () => (await api.get("/dashboard/quick-stats")).data, mockQuickStats);
 
 export const useComplaints = () =>
-  useQuery<Complaint[]>({
-    queryKey: ["complaints"],
-    queryFn: async () => (await api.get("/complaints")).data,
-  });
+  useDemoAware(["complaints"], async () => (await api.get("/complaints")).data, mockComplaints);
 
 export const useBudget = () =>
-  useQuery<BudgetData>({
-    queryKey: ["budget"],
-    queryFn: async () => (await api.get("/dashboard/budget")).data,
-  });
+  useDemoAware(["budget"], async () => (await api.get("/dashboard/budget")).data, mockBudget);
 
 export const useMonthlyEvents = () =>
-  useQuery<MonthlyEventData[]>({
-    queryKey: ["monthlyEvents"],
-    queryFn: async () => (await api.get("/dashboard/monthly-events")).data,
-  });
+  useDemoAware(["monthlyEvents"], async () => (await api.get("/dashboard/monthly-events")).data, mockMonthlyEvents);
 
-export const useCalendarEvents = (date: string) =>
-  useQuery<CalendarDayEvents>({
+export const useCalendarEvents = (date: string) => {
+  const { isDemo } = useAuth();
+  return useQuery<CalendarDayEvents>({
     queryKey: ["calendarEvents", date],
-    queryFn: async () => (await api.get(`/dashboard/calendar/${date}`)).data,
+    queryFn: isDemo
+      ? () => Promise.resolve(getMockCalendarEvents(date))
+      : async () => (await api.get(`/dashboard/calendar/${date}`)).data,
     enabled: !!date,
   });
+};
