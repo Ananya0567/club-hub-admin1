@@ -7,6 +7,9 @@ import {
   GraduationCap,
   Sun,
   Moon,
+  ClipboardList,
+  MessageSquare,
+  Star,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -28,12 +31,25 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
-const navItems = [
+const adminNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Clubs", url: "/clubs", icon: Users },
   { title: "Events", url: "/events", icon: CalendarDays },
   { title: "Reports", url: "/reports", icon: FileText },
   { title: "Settings", url: "/settings", icon: Settings },
+];
+
+const studentNav = [
+  { title: "Events", url: "/student/events", icon: CalendarDays },
+  { title: "Clubs", url: "/student/clubs", icon: Users },
+  { title: "My Registrations", url: "/student/registrations", icon: ClipboardList },
+];
+
+const facultyNav = [
+  { title: "Dashboard", url: "/faculty", icon: LayoutDashboard },
+  { title: "Events", url: "/faculty/events", icon: CalendarDays },
+  { title: "Members", url: "/faculty/members", icon: Users },
+  { title: "Feedback", url: "/faculty/feedback", icon: MessageSquare },
 ];
 
 export function AppSidebar() {
@@ -45,6 +61,10 @@ export function AppSidebar() {
 
   const toggleTheme = () => setTheme(resolvedTheme === "dark" ? "light" : "dark");
 
+  const role = user?.role ?? "admin";
+  const navItems = role === "student" ? studentNav : role === "faculty" ? facultyNav : adminNav;
+  const panelLabel = role === "student" ? "Student Portal" : role === "faculty" ? "Faculty Panel" : "Admin Panel";
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-3 py-4">
@@ -55,7 +75,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="overflow-hidden">
               <p className="text-sm font-bold text-sidebar-foreground truncate">College Clubs</p>
-              <p className="text-xs text-sidebar-foreground/60 truncate">Admin Panel</p>
+              <p className="text-xs text-sidebar-foreground/60 truncate">{panelLabel}</p>
             </div>
           )}
         </div>

@@ -8,6 +8,7 @@ export interface SignupCredentials {
   name: string;
   email: string;
   password: string;
+  role?: "student" | "faculty";
 }
 
 export interface AuthResponse {
@@ -19,7 +20,7 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  role: "admin" | "moderator" | "user";
+  role: "admin" | "faculty" | "student";
 }
 
 // Clubs
@@ -40,6 +41,40 @@ export interface Event {
   rating: string;
   date: string;
   time: string;
+}
+
+// Student event (with registration status)
+export interface StudentEvent extends Event {
+  registrationStatus: "registered" | "attended" | "cancelled" | null;
+}
+
+// Event Registration
+export interface EventRegistration {
+  _id: string;
+  event: Event;
+  student: string;
+  status: "registered" | "attended" | "cancelled";
+  createdAt: string;
+}
+
+// Feedback
+export interface Feedback {
+  _id: string;
+  student: { _id: string; name: string };
+  targetType: "club" | "event";
+  targetId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+// Faculty Stats
+export interface FacultyStats {
+  totalEvents: number;
+  pendingEvents: number;
+  totalRegistrations: number;
+  feedbackCount: number;
+  clubRating: number;
 }
 
 // Complaints

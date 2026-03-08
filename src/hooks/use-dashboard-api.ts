@@ -10,6 +10,11 @@ import {
   mockBudget,
   mockMonthlyEvents,
   getMockCalendarEvents,
+  mockStudentEvents,
+  mockMyRegistrations,
+  mockFacultyStats,
+  mockFacultyEvents,
+  mockFeedback,
 } from "@/lib/mock-data";
 import type {
   Club,
@@ -20,6 +25,10 @@ import type {
   BudgetData,
   MonthlyEventData,
   CalendarDayEvents,
+  StudentEvent,
+  EventRegistration,
+  FacultyStats,
+  Feedback,
 } from "@/types/api";
 
 function useDemoAware<T>(queryKey: string[], apiFn: () => Promise<T>, mockData: T) {
@@ -30,6 +39,7 @@ function useDemoAware<T>(queryKey: string[], apiFn: () => Promise<T>, mockData: 
   });
 }
 
+// Admin hooks
 export const useMetrics = () =>
   useDemoAware(["metrics"], async () => (await api.get("/dashboard/metrics")).data, mockMetrics);
 
@@ -61,3 +71,33 @@ export const useCalendarEvents = (date: string) => {
     enabled: !!date,
   });
 };
+
+// Student hooks
+export const useStudentEvents = () =>
+  useDemoAware<StudentEvent[]>(["studentEvents"], async () => (await api.get("/student/events")).data, mockStudentEvents);
+
+export const useStudentClubs = () =>
+  useDemoAware<Club[]>(["studentClubs"], async () => (await api.get("/student/clubs")).data, mockClubs);
+
+export const useMyRegistrations = () =>
+  useDemoAware<EventRegistration[]>(["myRegistrations"], async () => (await api.get("/student/my-registrations")).data, mockMyRegistrations);
+
+// Faculty hooks
+export const useFacultyClub = () =>
+  useDemoAware<Club>(["facultyClub"], async () => (await api.get("/faculty/my-club")).data, mockClubs[0]);
+
+export const useFacultyEvents = () =>
+  useDemoAware<Event[]>(["facultyEvents"], async () => (await api.get("/faculty/events")).data, mockFacultyEvents);
+
+export const useFacultyStats = () =>
+  useDemoAware<FacultyStats>(["facultyStats"], async () => (await api.get("/faculty/stats")).data, mockFacultyStats);
+
+export const useFacultyFeedback = () =>
+  useDemoAware<{ clubFeedback: Feedback[]; eventFeedback: Feedback[] }>(
+    ["facultyFeedback"],
+    async () => (await api.get("/faculty/feedback")).data,
+    mockFeedback
+  );
+
+export const useFacultyRegistrations = () =>
+  useDemoAware<any[]>(["facultyRegistrations"], async () => (await api.get("/faculty/registrations")).data, []);

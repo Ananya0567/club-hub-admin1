@@ -8,6 +8,8 @@ const clubRoutes = require("./routes/clubs");
 const eventRoutes = require("./routes/events");
 const complaintRoutes = require("./routes/complaints");
 const dashboardRoutes = require("./routes/dashboard");
+const studentRoutes = require("./routes/student");
+const facultyRoutes = require("./routes/faculty");
 
 const app = express();
 
@@ -20,6 +22,8 @@ app.use("/api/clubs", clubRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/student", studentRoutes);
+app.use("/api/faculty", facultyRoutes);
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 5000;

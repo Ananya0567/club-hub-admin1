@@ -6,11 +6,15 @@ const router = express.Router();
 // POST /api/auth/signup
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: "Email already registered" });
 
-    const user = await User.create({ name, email, password });
+    // Only allow student/faculty signup; admin is created manually
+    const allowedRoles = ["student", "faculty"];
+    const userRole = allowedRoles.includes(role) ? role : "student";
+
+    const user = await User.create({ name, email, password, role: userRole });
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     res.status(201).json({

@@ -9,18 +9,17 @@ interface AuthContextType {
   isDemo: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   signup: (credentials: SignupCredentials) => Promise<void>;
-  loginDemo: () => void;
+  loginDemo: (role?: "admin" | "faculty" | "student") => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_USER: User = {
-  _id: "demo-user",
-  name: "Demo Admin",
-  email: "demo@college.edu",
-  role: "admin",
+const DEMO_USERS: Record<string, User> = {
+  admin: { _id: "demo-admin", name: "Demo Admin", email: "admin@college.edu", role: "admin" },
+  faculty: { _id: "demo-faculty", name: "Dr. Sarah Wilson", email: "sarah@college.edu", role: "faculty" },
+  student: { _id: "demo-student", name: "Alex Johnson", email: "alex@college.edu", role: "student" },
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -31,8 +30,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const demoMode = localStorage.getItem("demoMode");
-    if (demoMode === "true") {
-      setUser(DEMO_USER);
+    if (demoMode && DEMO_USERS[demoMode]) {
+      setUser(DEMO_USERS[demoMode]);
       setToken("demo-token");
       setIsDemo(true);
     } else {
@@ -66,11 +65,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsDemo(false);
   };
 
-  const loginDemo = () => {
+  const loginDemo = (role: "admin" | "faculty" | "student" = "admin") => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    localStorage.setItem("demoMode", "true");
-    setUser(DEMO_USER);
+    localStorage.setItem("demoMode", role);
+    setUser(DEMO_USERS[role]);
     setToken("demo-token");
     setIsDemo(true);
   };

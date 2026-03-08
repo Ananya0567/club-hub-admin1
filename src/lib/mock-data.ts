@@ -8,6 +8,10 @@ import type {
   MonthlyEventData,
   CalendarDayEvents,
   CalendarEvent,
+  StudentEvent,
+  EventRegistration,
+  Feedback,
+  FacultyStats,
 } from "@/types/api";
 
 export const mockClubs: Club[] = [
@@ -29,6 +33,34 @@ export const mockEvents: Event[] = [
   { _id: "e7", name: "Workshop: AI Basics", club: "Coding Club", status: "approved", rating: "4.6", date: "2026-04-02", time: "11:00 AM" },
   { _id: "e8", name: "Drama Festival", club: "Drama Society", status: "approved", rating: "4.3", date: "2026-04-05", time: "5:00 PM" },
 ];
+
+export const mockStudentEvents: StudentEvent[] = mockEvents
+  .filter(e => e.status === "approved")
+  .map((e, i) => ({ ...e, registrationStatus: i === 0 ? "registered" as const : null }));
+
+export const mockMyRegistrations: EventRegistration[] = [
+  { _id: "r1", event: mockEvents[0], student: "demo-student", status: "registered", createdAt: "2026-03-07T10:00:00Z" },
+];
+
+export const mockFacultyStats: FacultyStats = {
+  totalEvents: 3,
+  pendingEvents: 1,
+  totalRegistrations: 45,
+  feedbackCount: 12,
+  clubRating: 4.8,
+};
+
+export const mockFacultyEvents: Event[] = mockEvents.filter(e => e.club === "Robotics Club");
+
+export const mockFeedback: { clubFeedback: Feedback[]; eventFeedback: Feedback[] } = {
+  clubFeedback: [
+    { _id: "f1", student: { _id: "s1", name: "Alice Johnson" }, targetType: "club", targetId: "c1", rating: 5, comment: "Amazing club!", createdAt: "2026-03-06T10:00:00Z" },
+    { _id: "f2", student: { _id: "s2", name: "Bob Smith" }, targetType: "club", targetId: "c1", rating: 4, comment: "Great activities", createdAt: "2026-03-05T14:00:00Z" },
+  ],
+  eventFeedback: [
+    { _id: "f3", student: { _id: "s3", name: "Carol Davis" }, targetType: "event", targetId: "e1", rating: 5, comment: "Best event ever!", createdAt: "2026-03-04T16:00:00Z" },
+  ],
+};
 
 export const mockComplaints: Complaint[] = [
   { _id: "cp1", text: "Robotics lab equipment needs maintenance", type: "alert", createdAt: "2026-03-07T14:30:00Z" },
