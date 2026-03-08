@@ -28,6 +28,7 @@ import FacultyEvents from "./pages/faculty/FacultyEvents";
 import FacultyMembers from "./pages/faculty/FacultyMembers";
 import FacultyFeedback from "./pages/faculty/FacultyFeedback";
 import FacultyAttendance from "./pages/faculty/FacultyAttendance";
+import FacultyAnalytics from "./pages/faculty/FacultyAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/faculty/members" element={<ProtectedRoute><RoleRoute allowedRoles={["faculty"]}><DashboardLayout><FacultyMembers /></DashboardLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/faculty/feedback" element={<ProtectedRoute><RoleRoute allowedRoles={["faculty"]}><DashboardLayout><FacultyFeedback /></DashboardLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/faculty/attendance" element={<ProtectedRoute><RoleRoute allowedRoles={["faculty"]}><DashboardLayout><FacultyAttendance /></DashboardLayout></RoleRoute></ProtectedRoute>} />
+            <Route path="/faculty/analytics" element={<ProtectedRoute><RoleRoute allowedRoles={["faculty"]}><DashboardLayout><FacultyAnalytics /></DashboardLayout></RoleRoute></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

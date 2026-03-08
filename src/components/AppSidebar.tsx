@@ -10,6 +10,7 @@ import {
   ClipboardList,
   MessageSquare,
   Bell,
+  BarChart3,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -52,6 +53,7 @@ const facultyNav = [
   { title: "Dashboard", url: "/faculty", icon: LayoutDashboard },
   { title: "Events", url: "/faculty/events", icon: CalendarDays },
   { title: "Attendance", url: "/faculty/attendance", icon: ClipboardList },
+  { title: "Analytics", url: "/faculty/analytics", icon: BarChart3 },
   { title: "Members", url: "/faculty/members", icon: Users },
   { title: "Feedback", url: "/faculty/feedback", icon: MessageSquare },
 ];
