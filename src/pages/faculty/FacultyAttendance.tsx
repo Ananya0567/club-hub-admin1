@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, Users, CheckCheck } from "lucide-react";
+import { CheckCircle, Users, CheckCheck, Download } from "lucide-react";
 
 const FacultyAttendance = () => {
   const { data: events, isLoading: eventsLoading } = useFacultyEvents();
