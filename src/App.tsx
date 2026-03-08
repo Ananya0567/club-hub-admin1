@@ -71,6 +71,7 @@ const App = () => (
             <Route path="/faculty/events" element={<ProtectedRoute><RoleRoute allowedRoles={["faculty"]}><DashboardLayout><FacultyEvents /></DashboardLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/faculty/members" element={<ProtectedRoute><RoleRoute allowedRoles={["faculty"]}><DashboardLayout><FacultyMembers /></DashboardLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/faculty/feedback" element={<ProtectedRoute><RoleRoute allowedRoles={["faculty"]}><DashboardLayout><FacultyFeedback /></DashboardLayout></RoleRoute></ProtectedRoute>} />
+            <Route path="/faculty/attendance" element={<ProtectedRoute><RoleRoute allowedRoles={["faculty"]}><DashboardLayout><FacultyAttendance /></DashboardLayout></RoleRoute></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
