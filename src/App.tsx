@@ -27,6 +27,7 @@ import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import FacultyEvents from "./pages/faculty/FacultyEvents";
 import FacultyMembers from "./pages/faculty/FacultyMembers";
 import FacultyFeedback from "./pages/faculty/FacultyFeedback";
+import FacultyAttendance from "./pages/faculty/FacultyAttendance";
 
 const queryClient = new QueryClient();
 

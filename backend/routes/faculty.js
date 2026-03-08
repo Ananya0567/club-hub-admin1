@@ -106,6 +106,22 @@ router.get("/registrations", auth, facultyOnly, async (req, res) => {
   }
 });
 
+// PATCH /api/faculty/registrations/:id/attend — mark a registration as attended
+router.patch("/registrations/:id/attend", auth, facultyOnly, async (req, res) => {
+  try {
+    const club = await Club.findById(req.assignedClub);
+    const reg = await EventRegistration.findById(req.params.id).populate("event");
+    if (!reg) return res.status(404).json({ message: "Registration not found" });
+    if (reg.event.club !== club.name) return res.status(403).json({ message: "Not your club's event" });
+    reg.status = req.body.status === "registered" ? "registered" : "attended";
+    await reg.save();
+    await reg.populate("student", "name email");
+    res.json(reg);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // GET /api/faculty/feedback — feedback for the club and its events
 router.get("/feedback", auth, facultyOnly, async (req, res) => {
   try {

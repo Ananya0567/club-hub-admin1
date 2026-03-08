@@ -150,6 +150,18 @@ export const useDeleteFacultyEvent = () => {
   });
 };
 
+export const useMarkAttendance = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      api.patch(`/faculty/registrations/${id}/attend`, { status }).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facultyRegistrations"] });
+      qc.invalidateQueries({ queryKey: ["facultyStats"] });
+    },
+  });
+};
+
 export const useUpdateFacultyClub = () => {
   const qc = useQueryClient();
   return useMutation({

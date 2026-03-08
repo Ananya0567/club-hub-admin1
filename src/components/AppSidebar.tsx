@@ -50,6 +50,7 @@ const studentNav = [
 const facultyNav = [
   { title: "Dashboard", url: "/faculty", icon: LayoutDashboard },
   { title: "Events", url: "/faculty/events", icon: CalendarDays },
+  { title: "Attendance", url: "/faculty/attendance", icon: ClipboardList },
   { title: "Members", url: "/faculty/members", icon: Users },
   { title: "Feedback", url: "/faculty/feedback", icon: MessageSquare },
 ];
