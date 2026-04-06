@@ -1,6 +1,7 @@
 const express = require("express");
 const User = require("../models/User");
 const Club = require("../models/Club");
+const Event = require("../models/Event");
 const auth = require("../middleware/auth");
 const router = express.Router();
 
@@ -53,6 +54,18 @@ router.post("/faculty", auth, async (req, res) => {
       .select("_id name email assignedClub")
       .populate("assignedClub", "name");
     res.status(201).json(populated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/admin/clubs/:id/events — get all events for a specific club with documents/photos
+router.get("/clubs/:id/events", auth, async (req, res) => {
+  try {
+    const club = await Club.findById(req.params.id);
+    if (!club) return res.status(404).json({ message: "Club not found" });
+    const events = await Event.find({ club: club.name }).sort({ date: -1 });
+    res.json({ club, events });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

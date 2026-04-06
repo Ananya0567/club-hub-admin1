@@ -150,6 +150,69 @@ export const useDeleteFacultyEvent = () => {
   });
 };
 
+// Faculty file uploads
+export const useUploadEventPhotos = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, files }: { eventId: string; files: File[] }) => {
+      const formData = new FormData();
+      files.forEach(f => formData.append("photos", f));
+      return api.post(`/faculty/events/${eventId}/upload-photos`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }).then(r => r.data);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facultyEvents"] });
+    },
+  });
+};
+
+export const useUploadEventDocuments = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, files }: { eventId: string; files: File[] }) => {
+      const formData = new FormData();
+      files.forEach(f => formData.append("documents", f));
+      return api.post(`/faculty/events/${eventId}/upload-documents`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }).then(r => r.data);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facultyEvents"] });
+    },
+  });
+};
+
+export const useUploadBudgetProof = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, files, budgetUsed }: { eventId: string; files: File[]; budgetUsed: number }) => {
+      const formData = new FormData();
+      files.forEach(f => formData.append("budgetProof", f));
+      formData.append("budgetUsed", String(budgetUsed));
+      return api.post(`/faculty/events/${eventId}/upload-budget-proof`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }).then(r => r.data);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facultyEvents"] });
+      qc.invalidateQueries({ queryKey: ["facultyStats"] });
+    },
+  });
+};
+
+export const useUpdateEventBudget = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, budgetUsed }: { eventId: string; budgetUsed: number }) =>
+      api.put(`/faculty/events/${eventId}/budget`, { budgetUsed }).then(r => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facultyEvents"] });
+      qc.invalidateQueries({ queryKey: ["facultyStats"] });
+    },
+  });
+};
+
 // Notification mutations
 export const useMarkNotificationRead = () => {
   const qc = useQueryClient();

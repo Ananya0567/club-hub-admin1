@@ -1,23 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
-import { useAuth } from "@/contexts/AuthContext";
-import {
-  mockClubs,
-  mockEvents,
-  mockComplaints,
-  mockMetrics,
-  mockQuickStats,
-  mockBudget,
-  mockMonthlyEvents,
-  getMockCalendarEvents,
-  mockStudentEvents,
-  mockMyRegistrations,
-  mockFacultyStats,
-  mockFacultyEvents,
-  mockFeedback,
-  mockNotifications,
-  mockFacultyRegistrations,
-} from "@/lib/mock-data";
 import type {
   Club,
   Event,
@@ -32,79 +14,120 @@ import type {
   FacultyStats,
   Feedback,
   AppNotification,
+  ClubEventsResponse,
 } from "@/types/api";
-
-function useDemoAware<T>(queryKey: string[], apiFn: () => Promise<T>, mockData: T) {
-  const { isDemo } = useAuth();
-  return useQuery<T>({
-    queryKey,
-    queryFn: isDemo ? () => Promise.resolve(mockData) : apiFn,
-  });
-}
 
 // Admin hooks
 export const useMetrics = () =>
-  useDemoAware(["metrics"], async () => (await api.get("/dashboard/metrics")).data, mockMetrics);
+  useQuery<DashboardMetrics>({
+    queryKey: ["metrics"],
+    queryFn: async () => (await api.get("/dashboard/metrics")).data,
+  });
 
 export const useClubs = () =>
-  useDemoAware(["clubs"], async () => (await api.get("/clubs")).data, mockClubs);
+  useQuery<Club[]>({
+    queryKey: ["clubs"],
+    queryFn: async () => (await api.get("/clubs")).data,
+  });
 
 export const useEvents = () =>
-  useDemoAware(["events"], async () => (await api.get("/events")).data, mockEvents);
+  useQuery<Event[]>({
+    queryKey: ["events"],
+    queryFn: async () => (await api.get("/events")).data,
+  });
 
 export const useQuickStats = () =>
-  useDemoAware(["quickStats"], async () => (await api.get("/dashboard/quick-stats")).data, mockQuickStats);
+  useQuery<QuickStatsData>({
+    queryKey: ["quickStats"],
+    queryFn: async () => (await api.get("/dashboard/quick-stats")).data,
+  });
 
 export const useComplaints = () =>
-  useDemoAware(["complaints"], async () => (await api.get("/complaints")).data, mockComplaints);
+  useQuery<Complaint[]>({
+    queryKey: ["complaints"],
+    queryFn: async () => (await api.get("/complaints")).data,
+  });
 
 export const useBudget = () =>
-  useDemoAware(["budget"], async () => (await api.get("/dashboard/budget")).data, mockBudget);
+  useQuery<BudgetData>({
+    queryKey: ["budget"],
+    queryFn: async () => (await api.get("/dashboard/budget")).data,
+  });
 
 export const useMonthlyEvents = () =>
-  useDemoAware(["monthlyEvents"], async () => (await api.get("/dashboard/monthly-events")).data, mockMonthlyEvents);
+  useQuery<MonthlyEventData[]>({
+    queryKey: ["monthlyEvents"],
+    queryFn: async () => (await api.get("/dashboard/monthly-events")).data,
+  });
 
-export const useCalendarEvents = (date: string) => {
-  const { isDemo } = useAuth();
-  return useQuery<CalendarDayEvents>({
+export const useCalendarEvents = (date: string) =>
+  useQuery<CalendarDayEvents>({
     queryKey: ["calendarEvents", date],
-    queryFn: isDemo
-      ? () => Promise.resolve(getMockCalendarEvents(date))
-      : async () => (await api.get(`/dashboard/calendar/${date}`)).data,
+    queryFn: async () => (await api.get(`/dashboard/calendar/${date}`)).data,
     enabled: !!date,
   });
-};
 
 // Student hooks
 export const useStudentEvents = () =>
-  useDemoAware<StudentEvent[]>(["studentEvents"], async () => (await api.get("/student/events")).data, mockStudentEvents);
+  useQuery<StudentEvent[]>({
+    queryKey: ["studentEvents"],
+    queryFn: async () => (await api.get("/student/events")).data,
+  });
 
 export const useStudentClubs = () =>
-  useDemoAware<Club[]>(["studentClubs"], async () => (await api.get("/student/clubs")).data, mockClubs);
+  useQuery<Club[]>({
+    queryKey: ["studentClubs"],
+    queryFn: async () => (await api.get("/student/clubs")).data,
+  });
 
 export const useMyRegistrations = () =>
-  useDemoAware<EventRegistration[]>(["myRegistrations"], async () => (await api.get("/student/my-registrations")).data, mockMyRegistrations);
+  useQuery<EventRegistration[]>({
+    queryKey: ["myRegistrations"],
+    queryFn: async () => (await api.get("/student/my-registrations")).data,
+  });
 
 // Faculty hooks
 export const useFacultyClub = () =>
-  useDemoAware<Club>(["facultyClub"], async () => (await api.get("/faculty/my-club")).data, mockClubs[0]);
+  useQuery<Club>({
+    queryKey: ["facultyClub"],
+    queryFn: async () => (await api.get("/faculty/my-club")).data,
+  });
 
 export const useFacultyEvents = () =>
-  useDemoAware<Event[]>(["facultyEvents"], async () => (await api.get("/faculty/events")).data, mockFacultyEvents);
+  useQuery<Event[]>({
+    queryKey: ["facultyEvents"],
+    queryFn: async () => (await api.get("/faculty/events")).data,
+  });
 
 export const useFacultyStats = () =>
-  useDemoAware<FacultyStats>(["facultyStats"], async () => (await api.get("/faculty/stats")).data, mockFacultyStats);
+  useQuery<FacultyStats>({
+    queryKey: ["facultyStats"],
+    queryFn: async () => (await api.get("/faculty/stats")).data,
+  });
 
 export const useFacultyFeedback = () =>
-  useDemoAware<{ clubFeedback: Feedback[]; eventFeedback: Feedback[] }>(
-    ["facultyFeedback"],
-    async () => (await api.get("/faculty/feedback")).data,
-    mockFeedback
-  );
+  useQuery<{ clubFeedback: Feedback[]; eventFeedback: Feedback[] }>({
+    queryKey: ["facultyFeedback"],
+    queryFn: async () => (await api.get("/faculty/feedback")).data,
+  });
 
 export const useFacultyRegistrations = () =>
-  useDemoAware<any[]>(["facultyRegistrations"], async () => (await api.get("/faculty/registrations")).data, mockFacultyRegistrations);
+  useQuery<any[]>({
+    queryKey: ["facultyRegistrations"],
+    queryFn: async () => (await api.get("/faculty/registrations")).data,
+  });
 
 // Notifications
 export const useNotifications = () =>
-  useDemoAware<AppNotification[]>(["notifications"], async () => (await api.get("/notifications")).data, mockNotifications);
+  useQuery<AppNotification[]>({
+    queryKey: ["notifications"],
+    queryFn: async () => (await api.get("/notifications")).data,
+  });
+
+// Admin: club events with documents
+export const useAdminClubEvents = (clubId: string) =>
+  useQuery<ClubEventsResponse>({
+    queryKey: ["adminClubEvents", clubId],
+    queryFn: async () => (await api.get(`/admin/clubs/${clubId}/events`)).data,
+    enabled: !!clubId,
+  });

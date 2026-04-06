@@ -41,6 +41,13 @@ export interface Event {
   rating: string;
   date: string;
   time: string;
+  description?: string;
+  budgetUsed?: number;
+  budgetProof?: string[];
+  photos?: string[];
+  documents?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Student event (with registration status)
@@ -75,6 +82,7 @@ export interface FacultyStats {
   totalRegistrations: number;
   feedbackCount: number;
   clubRating: number;
+  totalBudgetUsed?: number;
 }
 
 // Complaints
@@ -139,4 +147,10 @@ export interface AppNotification {
   read: boolean;
   relatedEvent?: string;
   createdAt: string;
+}
+
+// Admin club events response
+export interface ClubEventsResponse {
+  club: Club;
+  events: Event[];
 }

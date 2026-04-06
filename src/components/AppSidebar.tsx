@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Bell,
   BarChart3,
+  FolderOpen,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -37,6 +38,7 @@ const adminNav = [
   { title: "Clubs", url: "/clubs", icon: Users },
   { title: "Events", url: "/events", icon: CalendarDays },
   { title: "Faculty", url: "/faculty-assignment", icon: GraduationCap },
+  { title: "Documents", url: "/club-documents", icon: FolderOpen },
   { title: "Reports", url: "/reports", icon: FileText },
   { title: "Settings", url: "/settings", icon: Settings },
 ];

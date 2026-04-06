@@ -6,6 +6,7 @@ const EventRegistration = require("../models/EventRegistration");
 const Feedback = require("../models/Feedback");
 const Complaint = require("../models/Complaint");
 const auth = require("../middleware/auth");
+const upload = require("../middleware/upload");
 const { notifyNewEvent, notifyEventStatusChange } = require("../helpers/notifications");
 const router = express.Router();
 
@@ -33,7 +34,7 @@ router.get("/my-club", auth, facultyOnly, async (req, res) => {
   }
 });
 
-// PUT /api/faculty/my-club — update club details
+// PUT /api/faculty/my-club
 router.put("/my-club", auth, facultyOnly, async (req, res) => {
   try {
     const club = await Club.findByIdAndUpdate(req.assignedClub, req.body, { new: true });
@@ -43,7 +44,7 @@ router.put("/my-club", auth, facultyOnly, async (req, res) => {
   }
 });
 
-// GET /api/faculty/events — events for assigned club
+// GET /api/faculty/events
 router.get("/events", auth, facultyOnly, async (req, res) => {
   try {
     const club = await Club.findById(req.assignedClub);
@@ -54,7 +55,7 @@ router.get("/events", auth, facultyOnly, async (req, res) => {
   }
 });
 
-// POST /api/faculty/events — create event for assigned club
+// POST /api/faculty/events — create event
 router.post("/events", auth, facultyOnly, async (req, res) => {
   try {
     const club = await Club.findById(req.assignedClub);
@@ -93,7 +94,78 @@ router.delete("/events/:id", auth, facultyOnly, async (req, res) => {
   }
 });
 
-// GET /api/faculty/registrations — students registered for club events
+// POST /api/faculty/events/:id/upload-photos — upload event photos
+router.post("/events/:id/upload-photos", auth, facultyOnly, (req, res, next) => {
+  req.uploadSubDir = "photos";
+  next();
+}, upload.array("photos", 10), async (req, res) => {
+  try {
+    const club = await Club.findById(req.assignedClub);
+    const event = await Event.findById(req.params.id);
+    if (!event || event.club !== club.name) return res.status(403).json({ message: "Not your club's event" });
+    const filePaths = req.files.map(f => `/uploads/photos/${f.filename}`);
+    event.photos = [...(event.photos || []), ...filePaths];
+    await event.save();
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/faculty/events/:id/upload-documents — upload event documents
+router.post("/events/:id/upload-documents", auth, facultyOnly, (req, res, next) => {
+  req.uploadSubDir = "documents";
+  next();
+}, upload.array("documents", 10), async (req, res) => {
+  try {
+    const club = await Club.findById(req.assignedClub);
+    const event = await Event.findById(req.params.id);
+    if (!event || event.club !== club.name) return res.status(403).json({ message: "Not your club's event" });
+    const filePaths = req.files.map(f => `/uploads/documents/${f.filename}`);
+    event.documents = [...(event.documents || []), ...filePaths];
+    await event.save();
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/faculty/events/:id/upload-budget-proof — upload budget receipts
+router.post("/events/:id/upload-budget-proof", auth, facultyOnly, (req, res, next) => {
+  req.uploadSubDir = "budget-proofs";
+  next();
+}, upload.array("budgetProof", 5), async (req, res) => {
+  try {
+    const club = await Club.findById(req.assignedClub);
+    const event = await Event.findById(req.params.id);
+    if (!event || event.club !== club.name) return res.status(403).json({ message: "Not your club's event" });
+    const filePaths = req.files.map(f => `/uploads/budget-proofs/${f.filename}`);
+    event.budgetProof = [...(event.budgetProof || []), ...filePaths];
+    if (req.body.budgetUsed !== undefined) {
+      event.budgetUsed = Number(req.body.budgetUsed);
+    }
+    await event.save();
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PUT /api/faculty/events/:id/budget — update budget without files
+router.put("/events/:id/budget", auth, facultyOnly, async (req, res) => {
+  try {
+    const club = await Club.findById(req.assignedClub);
+    const event = await Event.findById(req.params.id);
+    if (!event || event.club !== club.name) return res.status(403).json({ message: "Not your club's event" });
+    if (req.body.budgetUsed !== undefined) event.budgetUsed = Number(req.body.budgetUsed);
+    await event.save();
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/faculty/registrations
 router.get("/registrations", auth, facultyOnly, async (req, res) => {
   try {
     const club = await Club.findById(req.assignedClub);
@@ -108,7 +180,7 @@ router.get("/registrations", auth, facultyOnly, async (req, res) => {
   }
 });
 
-// PATCH /api/faculty/registrations/:id/attend — mark a registration as attended
+// PATCH /api/faculty/registrations/:id/attend
 router.patch("/registrations/:id/attend", auth, facultyOnly, async (req, res) => {
   try {
     const club = await Club.findById(req.assignedClub);
@@ -124,7 +196,7 @@ router.patch("/registrations/:id/attend", auth, facultyOnly, async (req, res) =>
   }
 });
 
-// PATCH /api/faculty/registrations/bulk-attend — mark multiple registrations
+// PATCH /api/faculty/registrations/bulk-attend
 router.patch("/registrations/bulk-attend", auth, facultyOnly, async (req, res) => {
   try {
     const { ids, status } = req.body;
@@ -132,7 +204,6 @@ router.patch("/registrations/bulk-attend", auth, facultyOnly, async (req, res) =
     const club = await Club.findById(req.assignedClub);
     const events = await Event.find({ club: club.name });
     const eventIds = events.map(e => e._id.toString());
-    // Validate all registrations belong to this club
     const regs = await EventRegistration.find({ _id: { $in: ids } }).populate("event");
     const valid = regs.filter(r => eventIds.includes(r.event._id.toString()));
     if (!valid.length) return res.status(403).json({ message: "No valid registrations" });
@@ -145,7 +216,7 @@ router.patch("/registrations/bulk-attend", auth, facultyOnly, async (req, res) =
   }
 });
 
-// GET /api/faculty/feedback — feedback for the club and its events
+// GET /api/faculty/feedback
 router.get("/feedback", auth, facultyOnly, async (req, res) => {
   try {
     const club = await Club.findById(req.assignedClub);
@@ -159,7 +230,7 @@ router.get("/feedback", auth, facultyOnly, async (req, res) => {
   }
 });
 
-// GET /api/faculty/stats — quick stats for the club
+// GET /api/faculty/stats
 router.get("/stats", auth, facultyOnly, async (req, res) => {
   try {
     const club = await Club.findById(req.assignedClub);
@@ -173,12 +244,14 @@ router.get("/stats", auth, facultyOnly, async (req, res) => {
         { targetType: "event", targetId: { $in: eventIds } },
       ],
     });
+    const totalBudgetUsed = events.reduce((sum, e) => sum + (e.budgetUsed || 0), 0);
     res.json({
       totalEvents: events.length,
       pendingEvents,
       totalRegistrations,
       feedbackCount,
       clubRating: club.rating,
+      totalBudgetUsed,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

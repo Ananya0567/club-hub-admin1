@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { GraduationCap, Loader2, Play, Shield, BookOpen, Users } from "lucide-react";
+import { GraduationCap, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const roleRedirect: Record<string, string> = {
@@ -23,7 +22,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"student" | "faculty">("student");
   const [loading, setLoading] = useState(false);
-  const { login, signup, loginDemo } = useAuth();
+  const { login, signup } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -36,7 +35,6 @@ const Login = () => {
         navigate(roleRedirect[role]);
       } else {
         await login({ email, password });
-        // Role redirect happens after login sets user
         const savedUser = localStorage.getItem("user");
         if (savedUser) {
           const parsed = JSON.parse(savedUser);
@@ -54,11 +52,6 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDemo = (demoRole: "admin" | "faculty" | "student") => {
-    loginDemo(demoRole);
-    navigate(roleRedirect[demoRole]);
   };
 
   return (
@@ -108,25 +101,6 @@ const Login = () => {
               {isSignup ? "Create Account" : "Sign In"}
             </Button>
           </form>
-
-          <div className="relative">
-            <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-              try demo
-            </span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <Button type="button" variant="outline" className="gap-1.5 text-xs" onClick={() => handleDemo("admin")}>
-              <Shield className="h-3.5 w-3.5" /> Admin
-            </Button>
-            <Button type="button" variant="outline" className="gap-1.5 text-xs" onClick={() => handleDemo("faculty")}>
-              <BookOpen className="h-3.5 w-3.5" /> Faculty
-            </Button>
-            <Button type="button" variant="outline" className="gap-1.5 text-xs" onClick={() => handleDemo("student")}>
-              <Users className="h-3.5 w-3.5" /> Student
-            </Button>
-          </div>
 
           <p className="text-center text-sm text-muted-foreground">
             {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
