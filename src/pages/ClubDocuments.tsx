@@ -3,13 +3,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useClubs, useAdminClubEvents } from "@/hooks/use-dashboard-api";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, Filter } from "lucide-react";
 import { EventDocCard } from "@/components/documents/EventDocCard";
+import type { Event } from "@/types/api";
+
+const PROOF_STATUSES = [
+  { value: "all", label: "All Statuses" },
+  { value: "pending", label: "Pending" },
+  { value: "submitted", label: "Submitted" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+];
 
 const ClubDocuments = () => {
   const { data: clubs, isLoading: clubsLoading } = useClubs();
   const [selectedClubId, setSelectedClubId] = useState("");
+  const [proofFilter, setProofFilter] = useState("all");
   const { data: clubEvents, isLoading: eventsLoading } = useAdminClubEvents(selectedClubId);
+
+  const filteredEvents: Event[] = (clubEvents?.events ?? []).filter(
+    (e) => proofFilter === "all" || e.proofStatus === proofFilter
+  );
 
   return (
     <div className="p-6 space-y-6">
@@ -25,21 +39,41 @@ const ClubDocuments = () => {
 
       <Card className="shadow-card">
         <CardContent className="pt-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Select Club</label>
-            {clubsLoading ? (
-              <Skeleton className="h-10 w-64" />
-            ) : (
-              <Select value={selectedClubId} onValueChange={setSelectedClubId}>
-                <SelectTrigger className="w-full max-w-xs">
-                  <SelectValue placeholder="Choose a club..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {clubs?.map((club) => (
-                    <SelectItem key={club._id} value={club._id}>{club.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="flex flex-wrap gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Select Club</label>
+              {clubsLoading ? (
+                <Skeleton className="h-10 w-64" />
+              ) : (
+                <Select value={selectedClubId} onValueChange={(v) => { setSelectedClubId(v); setProofFilter("all"); }}>
+                  <SelectTrigger className="w-full max-w-xs">
+                    <SelectValue placeholder="Choose a club..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clubs?.map((club) => (
+                      <SelectItem key={club._id} value={club._id}>{club.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {selectedClubId && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                  <Filter className="h-3.5 w-3.5" /> Proof Status
+                </label>
+                <Select value={proofFilter} onValueChange={setProofFilter}>
+                  <SelectTrigger className="w-44">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROOF_STATUSES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
           </div>
         </CardContent>
@@ -51,13 +85,14 @@ const ClubDocuments = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-64 rounded-lg" />)}
             </div>
-          ) : clubEvents?.events?.length ? (
+          ) : filteredEvents.length ? (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Showing {clubEvents.events.length} events for <span className="font-medium text-foreground">{clubEvents.club.name}</span>
+                Showing {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""} for <span className="font-medium text-foreground">{clubEvents!.club.name}</span>
+                {proofFilter !== "all" && <span className="ml-1">({proofFilter})</span>}
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {clubEvents.events.map((event, i) => (
+                {filteredEvents.map((event, i) => (
                   <EventDocCard key={event._id} event={event} index={i} />
                 ))}
               </div>
@@ -65,7 +100,7 @@ const ClubDocuments = () => {
           ) : (
             <Card className="shadow-card">
               <CardContent className="py-12 text-center text-muted-foreground">
-                No events found for this club.
+                {proofFilter === "all" ? "No events found for this club." : `No events with "${proofFilter}" proof status.`}
               </CardContent>
             </Card>
           )}
