@@ -54,13 +54,12 @@ export default function NotificationBell() {
   };
 
   useEffect(() => {
-    // ✅ Ensure socket is connected
     if (!socket.connected) {
       socket.connect();
     }
 
-    // OPTIONAL: register user (if backend expects it)
     const user = JSON.parse(localStorage.getItem("user") || "null");
+
     if (user) {
       socket.emit("register", {
         userId: user._id,
@@ -68,20 +67,20 @@ export default function NotificationBell() {
       });
     }
 
-    // SINGLE NOTIFICATION UPDATE
     socket.on("notificationUpdated", (updatedNotification) => {
       queryClient.setQueryData(["notifications"], (old: any) => {
         if (!old) return [];
+
         return old.map((n: any) =>
           n._id === updatedNotification._id ? updatedNotification : n
         );
       });
     });
 
-    // ALL NOTIFICATIONS CLEARED
     socket.on("notificationsCleared", () => {
       queryClient.setQueryData(["notifications"], (old: any) => {
         if (!old) return [];
+
         return old.map((n: any) => ({
           ...n,
           read: true,
@@ -89,17 +88,27 @@ export default function NotificationBell() {
       });
     });
 
+    socket.on("new_message_notification", (notification) => {
+      queryClient.setQueryData(["notifications"], (old: any) => {
+        if (!old) return [notification];
+
+        return [notification, ...old];
+      });
+    });
+
     return () => {
       socket.off("notificationUpdated");
       socket.off("notificationsCleared");
+      socket.off("new_message_notification");
     };
-  }, []);
+  }, [queryClient]);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-8 w-8">
           <Bell className="h-4 w-4" />
+
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
               {unreadCount}
@@ -114,6 +123,7 @@ export default function NotificationBell() {
       >
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Notifications</span>
+
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -145,7 +155,7 @@ export default function NotificationBell() {
               <span
                 className={cn(
                   "mt-1.5 h-2 w-2 shrink-0 rounded-full",
-                  typeColors[n.type]
+                  typeColors[n.type] || "bg-primary"
                 )}
               />
 
@@ -153,9 +163,11 @@ export default function NotificationBell() {
                 <p className="text-sm font-medium leading-tight">
                   {n.title}
                 </p>
+
                 <p className="text-xs text-muted-foreground truncate">
                   {n.description}
                 </p>
+
                 <p className="text-[11px] text-muted-foreground/70">
                   {formatTime(n.createdAt)}
                 </p>

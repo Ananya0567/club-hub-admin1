@@ -17,20 +17,29 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
 
     console.log("USER:", user?.email);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const valid = await bcrypt.compare(password, user.password);
     console.log("PASSWORD MATCH:", valid);
 
-    if (!valid) return res.status(401).json({ message: "Invalid credentials" });
+    if (!valid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     return res.json({
       token: signToken(user._id),
       user: safeUser(user),
     });
-
   } catch (error) {
     console.log("ERROR:", error);
     return res.status(500).json({ message: error.message });
@@ -42,9 +51,16 @@ router.post("/register", async (req, res) => {
   try {
     const { name, email, password, studentId, department, year } = req.body;
 
+    if (!name || !email || !password || !studentId || !department || !year) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
     const existing = await User.findOne({
-      $or: [{ email: email.toLowerCase() }, { studentId }],
+      $or: [{ email: normalizedEmail }, { studentId }],
     });
+
     if (existing) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -53,7 +69,7 @@ router.post("/register", async (req, res) => {
 
     const user = await User.create({
       name,
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       password,
       studentId,
       department,
@@ -71,9 +87,9 @@ router.post("/register", async (req, res) => {
       text: `OTP: ${otp}`,
     });
 
-    res.json({ message: "OTP sent", email: user.email });
+    return res.json({ message: "OTP sent", email: user.email });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -82,7 +98,12 @@ router.post("/verify-otp", async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
     if (!user || user.otp !== otp || user.otpExpiry < new Date()) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
@@ -92,12 +113,12 @@ router.post("/verify-otp", async (req, res) => {
     user.otpExpiry = null;
     await user.save();
 
-    res.json({
+    return res.json({
       token: signToken(user._id),
       user: safeUser(user),
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -106,16 +127,32 @@ router.post("/change-password", async (req, res) => {
   try {
     const { email, currentPassword, newPassword, token } = req.body;
 
-    const user = token
-      ? await User.findOne({ resetToken: token, resetTokenExpiry: { $gt: new Date() } })
-      : await User.findOne({ email: email.toLowerCase() });
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password is required" });
+    }
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = token
+      ? await User.findOne({
+          resetToken: token,
+          resetTokenExpiry: { $gt: new Date() },
+        })
+      : await User.findOne({ email: email.toLowerCase().trim() });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     if (!token) {
-const valid = await bcrypt.compare(password, user.password);
-console.log("PASSWORD MATCH:", valid);
-      if (!valid) return res.status(401).json({ message: "Wrong password" });
+      if (!currentPassword) {
+        return res.status(400).json({ message: "Current password is required" });
+      }
+
+      const valid = password === user.password;
+      console.log("PASSWORD MATCH:", valid);
+
+      if (!valid) {
+        return res.status(401).json({ message: "Wrong password" });
+      }
     }
 
     user.password = newPassword;
@@ -125,13 +162,13 @@ console.log("PASSWORD MATCH:", valid);
 
     await user.save();
 
-    res.json({
+    return res.json({
       message: "Password updated",
       token: signToken(user._id),
       user: safeUser(user),
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -140,8 +177,15 @@ router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
 
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return res.json({ message: "If exists, email sent" });
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    if (!user) {
+      return res.json({ message: "If exists, email sent" });
+    }
 
     const resetToken = createToken();
     user.resetToken = resetToken;
@@ -158,9 +202,9 @@ router.post("/forgot-password", async (req, res) => {
       text: resetUrl,
     });
 
-    res.json({ message: "Reset email sent" });
+    return res.json({ message: "Reset email sent" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 });
 

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto"; // ✅ added this
 
 // create token (main)
 export const signToken = (userId) => {
@@ -11,7 +12,7 @@ export const signToken = (userId) => {
 
 // createToken (for reset, compatibility kept)
 export const createToken = () => {
-  return require("crypto").randomBytes(32).toString("hex");
+  return crypto.randomBytes(32).toString("hex"); // ✅ fixed
 };
 
 // random password

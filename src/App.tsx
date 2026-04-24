@@ -20,6 +20,9 @@ import VerifyOtp from "./pages/VerifyOtp.tsx";
 import SetPassword from "./pages/SetPassword.tsx";
 import NotFound from "./pages/NotFound";
 
+// ✅ ADDED THIS
+import MessagesPage from "./pages/MessagesPage";
+
 // Admin
 import Index from "./pages/Index";
 import Clubs from "./pages/Clubs";
@@ -58,7 +61,6 @@ const RoleRoute = ({
 
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
-
   if (!allowedRoles.includes(user.role)) {
     if (user.role === "admin") return <Navigate to="/admin" replace />;
     if (user.role === "faculty") return <Navigate to="/faculty" replace />;
@@ -98,7 +100,6 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-
           <BrowserRouter>
             <Routes>
               {/* AUTH */}
@@ -117,6 +118,20 @@ const App = () => (
                     <RoleRoute allowedRoles={["admin"]}>
                       <DashboardLayout>
                         <Index />
+                      </DashboardLayout>
+                    </RoleRoute>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* ✅ ADMIN MESSAGES ADDED */}
+              <Route
+                path="/admin/messages"
+                element={
+                  <ProtectedRoute>
+                    <RoleRoute allowedRoles={["admin"]}>
+                      <DashboardLayout>
+                        <MessagesPage />
                       </DashboardLayout>
                     </RoleRoute>
                   </ProtectedRoute>
@@ -215,6 +230,20 @@ const App = () => (
                 }
               />
 
+              {/* ✅ FACULTY MESSAGES ADDED */}
+              <Route
+                path="/faculty/messages"
+                element={
+                  <ProtectedRoute>
+                    <RoleRoute allowedRoles={["faculty"]}>
+                      <DashboardLayout>
+                        <MessagesPage />
+                      </DashboardLayout>
+                    </RoleRoute>
+                  </ProtectedRoute>
+                }
+              />
+
               <Route
                 path="/faculty/events"
                 element={
@@ -222,58 +251,6 @@ const App = () => (
                     <RoleRoute allowedRoles={["faculty"]}>
                       <DashboardLayout>
                         <FacultyEvents />
-                      </DashboardLayout>
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/faculty/members"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={["faculty"]}>
-                      <DashboardLayout>
-                        <FacultyMembers />
-                      </DashboardLayout>
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/faculty/feedback"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={["faculty"]}>
-                      <DashboardLayout>
-                        <FacultyFeedback />
-                      </DashboardLayout>
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/faculty/attendance"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={["faculty"]}>
-                      <DashboardLayout>
-                        <FacultyAttendance />
-                      </DashboardLayout>
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/faculty/analytics"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={["faculty"]}>
-                      <DashboardLayout>
-                        <FacultyAnalytics />
                       </DashboardLayout>
                     </RoleRoute>
                   </ProtectedRoute>
@@ -294,59 +271,20 @@ const App = () => (
                 }
               />
 
+              {/* ✅ STUDENT MESSAGES ADDED */}
               <Route
-                path="/student/clubs"
+                path="/student/messages"
                 element={
                   <ProtectedRoute>
                     <RoleRoute allowedRoles={["student"]}>
                       <DashboardLayout>
-                        <StudentClubs />
+                        <MessagesPage />
                       </DashboardLayout>
                     </RoleRoute>
                   </ProtectedRoute>
                 }
               />
 
-              <Route
-                path="/student/registrations"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={["student"]}>
-                      <DashboardLayout>
-                        <StudentMyRegistrations />
-                      </DashboardLayout>
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/student/profile"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={["student"]}>
-                      <DashboardLayout>
-                        <StudentProfile />
-                      </DashboardLayout>
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/student/notifications"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={["student"]}>
-                      <DashboardLayout>
-                        <StudentNotifications />
-                      </DashboardLayout>
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

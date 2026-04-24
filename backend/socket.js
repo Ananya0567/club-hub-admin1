@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 
 let io;
-const users = new Map(); // userId -> socketId
+const users = new Map();
 
 export function initSocket(server) {
   io = new Server(server, {
@@ -13,6 +13,30 @@ export function initSocket(server) {
 
   io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
+
+    socket.on("register", ({ userId, role }) => {
+      if (userId) {
+        registerSocketUser(userId, socket.id);
+      }
+
+      if (role) {
+        socket.join(role);
+      }
+
+      console.log("Socket registered:", userId, role);
+    });
+
+    socket.on("join", ({ userId, role }) => {
+      if (userId) {
+        registerSocketUser(userId, socket.id);
+      }
+
+      if (role) {
+        socket.join(role);
+      }
+
+      console.log("Socket joined:", userId, role);
+    });
 
     socket.on("disconnect", () => {
       unregisterSocket(socket.id);
@@ -30,12 +54,10 @@ export function getIo() {
   return io;
 }
 
-// Register user
 export function registerSocketUser(userId, socketId) {
-  users.set(userId, socketId);
+  users.set(String(userId), socketId);
 }
 
-// Remove socket
 export function unregisterSocket(socketId) {
   for (const [userId, id] of users.entries()) {
     if (id === socketId) {
@@ -45,15 +67,13 @@ export function unregisterSocket(socketId) {
   }
 }
 
-// Emit to specific user
 export function emitToUser(userId, event, data) {
-  const socketId = users.get(userId);
+  const socketId = users.get(String(userId));
   if (socketId && io) {
     io.to(socketId).emit(event, data);
   }
 }
 
-// Emit to role (room)
 export function emitToRole(role, event, data) {
   if (io) {
     io.to(role).emit(event, data);

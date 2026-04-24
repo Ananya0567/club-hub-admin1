@@ -14,6 +14,7 @@ import {
   FolderOpen,
   QrCode,
   ScanLine,
+  LogOut,
 } from "lucide-react";
 
 import { NavLink } from "@/components/NavLink";
@@ -36,37 +37,6 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
-
-// ✅ FINAL ADMIN NAV (Lovedev structure)
-const adminNav = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Clubs", url: "/admin/clubs", icon: Users },
-  { title: "Events", url: "/admin/events", icon: CalendarDays },
-  { title: "Faculty", url: "/admin/faculty-assignment", icon: GraduationCap },
-  { title: "Documents", url: "/admin/club-documents", icon: FolderOpen },
-  { title: "Reports", url: "/admin/reports", icon: FileText },
-  { title: "Settings", url: "/admin/settings", icon: Settings },
-];
-
-const studentNav = [
-  { title: "Events", url: "/student/events", icon: CalendarDays },
-  { title: "Clubs", url: "/student/clubs", icon: Users },
-  { title: "My Registrations", url: "/student/registrations", icon: ClipboardList },
-  { title: "Check-in", url: "/student/check-in", icon: ScanLine },
-  { title: "Notifications", url: "/student/notifications", icon: Bell },
-  { title: "Profile", url: "/student/profile", icon: GraduationCap },
-];
-
-const facultyNav = [
-  { title: "Dashboard", url: "/faculty", icon: LayoutDashboard },
-  { title: "Events", url: "/faculty/events", icon: CalendarDays },
-  { title: "QR Attendance", url: "/faculty/qr-attendance", icon: QrCode },
-  { title: "Attendance", url: "/faculty/attendance", icon: ClipboardList },
-  { title: "Analytics", url: "/faculty/analytics", icon: BarChart3 },
-  { title: "Members", url: "/faculty/members", icon: Users },
-  { title: "Feedback", url: "/faculty/feedback", icon: MessageSquare },
-];
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -76,10 +46,49 @@ export function AppSidebar() {
   const { user, logout } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
 
+  const role = user?.role ?? "admin";
+
   const toggleTheme = () =>
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
 
-  const role = user?.role ?? "admin";
+  const messageUrl =
+    role === "admin"
+      ? "/admin/messages"
+      : role === "faculty"
+      ? "/faculty/messages"
+      : "/student/messages";
+
+  const adminNav = [
+    { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+    { title: "Messages", url: messageUrl, icon: MessageSquare },
+    { title: "Clubs", url: "/admin/clubs", icon: Users },
+    { title: "Events", url: "/admin/events", icon: CalendarDays },
+    { title: "Faculty", url: "/admin/faculty-assignment", icon: GraduationCap },
+    { title: "Documents", url: "/admin/club-documents", icon: FolderOpen },
+    { title: "Reports", url: "/admin/reports", icon: FileText },
+    { title: "Settings", url: "/admin/settings", icon: Settings },
+  ];
+
+  const studentNav = [
+    { title: "Events", url: "/student/events", icon: CalendarDays },
+    { title: "Messages", url: messageUrl, icon: MessageSquare },
+    { title: "Clubs", url: "/student/clubs", icon: Users },
+    { title: "My Registrations", url: "/student/registrations", icon: ClipboardList },
+    { title: "Check-in", url: "/student/check-in", icon: ScanLine },
+    { title: "Notifications", url: "/student/notifications", icon: Bell },
+    { title: "Profile", url: "/student/profile", icon: GraduationCap },
+  ];
+
+  const facultyNav = [
+    { title: "Dashboard", url: "/faculty", icon: LayoutDashboard },
+    { title: "Messages", url: messageUrl, icon: MessageSquare },
+    { title: "Events", url: "/faculty/events", icon: CalendarDays },
+    { title: "QR Attendance", url: "/faculty/qr-attendance", icon: QrCode },
+    { title: "Attendance", url: "/faculty/attendance", icon: ClipboardList },
+    { title: "Analytics", url: "/faculty/analytics", icon: BarChart3 },
+    { title: "Members", url: "/faculty/members", icon: Users },
+    { title: "Feedback", url: "/faculty/feedback", icon: MessageSquare },
+  ];
 
   const navItems =
     role === "student"

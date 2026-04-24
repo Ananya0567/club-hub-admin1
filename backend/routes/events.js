@@ -7,7 +7,6 @@ import permit from "../middleware/role.js";
 import { upload } from "../middleware/upload.js";
 import { generateQrCodeDataUrl } from "../utils/qr.js";
 import { recalculateClubHealth } from "../services/healthService.js";
-import { sendEmail } from "../services/emailService.js";
 import { getIo } from "../socket.js";
 import { fileToMeta } from "../utils/files.js";
 import { createToken } from "../utils/auth.js";
@@ -16,11 +15,13 @@ const router = express.Router();
 
 async function ensureEventAccess(user, event) {
   if (user.role === "admin") return true;
+
   if (user.role === "faculty") {
     return (user.assignedClubs || []).some(
       (clubId) => String(clubId) === String(event.clubId)
     );
   }
+
   return false;
 }
 
@@ -39,22 +40,24 @@ router.get("/", auth, async (req, res) => {
 
     if (req.query.status) query.status = req.query.status;
     if (req.query.clubId) query.clubId = req.query.clubId;
-    if (req.query.search)
+    if (req.query.search) {
       query.name = { $regex: req.query.search, $options: "i" };
+    }
 
     const events = await Event.find(query)
       .populate("clubId", "name healthStatus")
       .populate("facultyId", "name email")
       .sort({ date: 1, time: 1 });
 
-    res.json(
+    return res.json(
       events.map((event) => ({
         ...event.toObject(),
         clubName: event.clubId?.name || "",
       }))
     );
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("GET EVENTS ERROR:", error);
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -66,10 +69,16 @@ router.post(
   upload.array("attachments", 10),
   async (req, res) => {
     try {
+      console.log("BODY:", req.body);
+
       let { clubId } = req.body;
 
       if (req.user.role === "faculty") {
         clubId = req.user.assignedClubs?.[0];
+      }
+
+      if (!clubId) {
+        return res.status(400).json({ message: "Club ID is required" });
       }
 
       const club = await Club.findById(clubId);
@@ -77,16 +86,24 @@ router.post(
         return res.status(404).json({ message: "Club not found" });
       }
 
+      const facultyIdToSave =
+        req.user.role === "faculty"
+          ? req.user._id
+          : req.body.facultyId ||
+            club.facultyId ||
+            club.faculty ||
+            club.facultyIds?.[0] ||
+            null;
+
+      console.log("FACULTY ID TO SAVE:", facultyIdToSave);
+
       const qrCodeToken = createToken();
 
       const event = await Event.create({
         name: req.body.name,
         description: req.body.description || "",
         clubId,
-        facultyId:
-          req.user.role === "admin"
-            ? req.body.facultyId || club.facultyIds?.[0]
-            : req.user._id,
+        facultyId: facultyIdToSave,
         date: req.body.date,
         time: req.body.time,
         endTime: req.body.endTime || "",
@@ -94,18 +111,13 @@ router.post(
         maxCapacity: Number(req.body.maxCapacity || 100),
         planned: req.body.planned !== "false",
         budgetRequested: Number(req.body.budgetRequested || 0),
+        budgetSpent: Number(req.body.budgetSpent || 0),
         status: req.user.role === "admin" ? "approved" : "pending",
         qrCodeToken,
         attachments: (req.files || []).map((file) =>
           fileToMeta(file, req.user._id, "faculty")
         ),
       });
-
-      // ✅ RISK CHECK (FIXED)
-      const isRisky = checkEventRisk(event);
-      if (isRisky) {
-        console.log("High risk event detected");
-      }
 
       event.qrCodeDataUrl = await generateQrCodeDataUrl(
         JSON.stringify({
@@ -115,14 +127,25 @@ router.post(
       );
 
       await event.save();
-      await recalculateClubHealth(clubId);
 
-      getIo().to("student").emit("event:created", event);
-      getIo().to(`club:${clubId}`).emit("event:created", event);
+      try {
+        await recalculateClubHealth(clubId);
+      } catch (healthError) {
+        console.error("CLUB HEALTH UPDATE ERROR:", healthError.message);
+      }
 
-      res.status(201).json(event);
+      try {
+        const io = getIo();
+        io.to("student").emit("event:created", event);
+        io.to(`club:${clubId}`).emit("event:created", event);
+      } catch (socketError) {
+        console.error("SOCKET EMIT ERROR:", socketError.message);
+      }
+
+      return res.status(201).json(event);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.error("CREATE EVENT ERROR:", error);
+      return res.status(500).json({ message: error.message });
     }
   }
 );
@@ -146,23 +169,20 @@ router.put("/:id", auth, permit("admin", "faculty"), async (req, res) => {
         status: { $ne: "cancelled" },
       }).populate("studentId", "email name");
 
-      const studentIds = registrations.map(
-        (r) => r.studentId._id
+      console.log(
+        "Event status updated. Registrations affected:",
+        registrations.length
       );
-
-      await notifyMany(studentIds, {
-        title: "Event status updated",
-        message: `${event.name} is now ${event.status}`,
-      });
     }
 
     await recalculateClubHealth(event.clubId);
 
     getIo().to(`club:${event.clubId}`).emit("event:updated", event);
 
-    res.json(event)``;
+    return res.json(event);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("UPDATE EVENT ERROR:", error);
+    return res.status(500).json({ message: error.message });
   }
 });
 
@@ -177,9 +197,10 @@ router.delete("/:id", auth, permit("admin", "faculty"), async (req, res) => {
 
     await event.deleteOne();
 
-    res.json({ message: "Deleted successfully" });
+    return res.json({ message: "Deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Delete failed" });
+    console.error("DELETE EVENT ERROR:", err);
+    return res.status(500).json({ message: "Delete failed" });
   }
 });
 

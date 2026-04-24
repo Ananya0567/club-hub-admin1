@@ -38,7 +38,6 @@ const EventFormDialog = ({
   const [budgetSpent, setBudgetSpent] = useState("");
   const [files, setFiles] = useState<File[]>([]);
 
-  // ✅ Convert to AM/PM
   const formatTime = (time: string) => {
     if (!time) return "";
 
@@ -51,13 +50,12 @@ const EventFormDialog = ({
     return `${h}:${minute} ${ampm}`;
   };
 
-  // ✅ Edit mode
   useEffect(() => {
     if (event) {
       setName(event.name || "");
       setClub(event.clubId || "");
       setDate(event.date ? event.date.split("T")[0] : "");
-      setTime(event.time || ""); // keep as 24h internally
+      setTime(event.time || "");
       setBudgetSpent(String(event.budgetSpent || 0));
     } else {
       setName("");
@@ -69,22 +67,22 @@ const EventFormDialog = ({
     }
   }, [event, open]);
 
-  // ✅ Faculty auto club
   useEffect(() => {
     if (user?.role === "faculty" && user?.assignedClubs?.length > 0) {
       setClub(user.assignedClubs[0]);
     }
   }, [user]);
 
-  // ✅ Submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    console.log("HANDLE SUBMIT RUNNING"); // ✅ DEBUG
 
     const formData = new FormData();
     formData.append("name", name);
     formData.append("clubId", club);
     formData.append("date", date);
-    formData.append("time", time); // store 24h format
+    formData.append("time", time);
     formData.append("budgetSpent", String(Number(budgetSpent) || 0));
 
     files.forEach((file) => {
@@ -108,7 +106,6 @@ const EventFormDialog = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* Event Name */}
           <div>
             <Label>Event Name</Label>
             <Input
@@ -118,7 +115,6 @@ const EventFormDialog = ({
             />
           </div>
 
-          {/* Club */}
           {user?.role === "admin" ? (
             <div>
               <Label>Club</Label>
@@ -147,7 +143,6 @@ const EventFormDialog = ({
             </div>
           )}
 
-          {/* Date & Time */}
           <div className="grid grid-cols-2 gap-3">
             <Input
               type="date"
@@ -164,7 +159,6 @@ const EventFormDialog = ({
                 required
               />
 
-              {/* ✅ AM/PM display */}
               {time && (
                 <p className="text-sm text-gray-500 mt-1">
                   Selected: {formatTime(time)}
@@ -173,7 +167,6 @@ const EventFormDialog = ({
             </div>
           </div>
 
-          {/* Budget */}
           <Input
             type="number"
             value={budgetSpent}
@@ -181,7 +174,6 @@ const EventFormDialog = ({
             placeholder="Budget"
           />
 
-          {/* Upload only after completion */}
           {event && event.status === "completed" && (
             <Input
               type="file"
@@ -192,7 +184,6 @@ const EventFormDialog = ({
             />
           )}
 
-          {/* Buttons */}
           <DialogFooter>
             <Button type="button" onClick={() => onOpenChange(false)}>
               Cancel

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
+import messageRoutes from "./routes/messages.js";
 
 // Routes
 import authRoutes from "./routes/auth.js";
@@ -17,6 +18,7 @@ import notificationRoutes from "./routes/notifications.js";
 import attendanceRoutes from "./routes/attendance.js";
 import proofRoutes from "./routes/proofs.js";
 import feedbackRoutes from "./routes/feedback.js";
+import userRoutes from "./routes/user.js";
 
 // Socket helpers
 import {
@@ -36,7 +38,7 @@ const allowedOrigins = [
   "http://127.0.0.1:8080",
 ];
 
-// ✅ correct socket init (ONLY this)
+// socket init
 const io = initSocket(server);
 
 // Middleware
@@ -65,6 +67,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/proofs", proofRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/users", userRoutes);
 
 // Error handler
 app.use((err, _req, res, _next) => {

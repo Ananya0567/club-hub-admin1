@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-// Attachment schema (keep this from stashed changes)
+// Attachment schema
 const attachmentSchema = new mongoose.Schema(
   {
     label: { type: String, default: "" },
@@ -9,13 +9,16 @@ const attachmentSchema = new mongoose.Schema(
     mimeType: { type: String, default: "" },
     size: { type: Number, default: 0 },
     url: { type: String, default: "" },
-    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     uploadedAt: { type: Date, default: Date.now },
   },
   { _id: true }
 );
 
-// Final event schema (merged properly)
 const eventSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -31,7 +34,8 @@ const eventSchema = new mongoose.Schema(
     facultyId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
+      default: null,
       index: true,
     },
 
